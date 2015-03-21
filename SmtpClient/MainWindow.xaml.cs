@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TakeAsh;  // string.TryParse<T>()
 
 namespace SmtpClient {
     /// <summary>
@@ -41,10 +42,7 @@ namespace SmtpClient {
 
         private void SaveConfig() {
             _config.Server = textBox_SmtpServer.Text;
-            var port = DefaultPort;
-            _config.Port = int.TryParse(textBox_SmtpPort.Text, out port) ?
-                port :
-                DefaultPort;
+            _config.Port = textBox_SmtpPort.Text.TryParse(DefaultPort);
             _config.SSL = checkBox_SmtpSsl.IsChecked == true;
             _config.Account = textBox_SmtpAccount.Text;
             _config.Password = textBox_SmtpPassword.Password;
