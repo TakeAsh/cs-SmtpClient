@@ -24,10 +24,31 @@ namespace SmtpClient {
 
         private System.Net.Mail.SmtpClient _client;
         private bool _configVisibility = true;
+        private Properties.Settings _config = Properties.Settings.Default;
 
         public MainWindow() {
             InitializeComponent();
-            textBox_SmtpPort.Text = DefaultPort.ToString();
+            LoadConfig();
+        }
+
+        private void LoadConfig() {
+            textBox_SmtpServer.Text = _config.Server;
+            textBox_SmtpPort.Text = _config.Port.ToString();
+            checkBox_SmtpSsl.IsChecked = _config.SSL;
+            textBox_SmtpAccount.Text = _config.Account;
+            textBox_SmtpPassword.Password = _config.Password;
+        }
+
+        private void SaveConfig() {
+            _config.Server = textBox_SmtpServer.Text;
+            var port = DefaultPort;
+            _config.Port = int.TryParse(textBox_SmtpPort.Text, out port) ?
+                port :
+                DefaultPort;
+            _config.SSL = checkBox_SmtpSsl.IsChecked == true;
+            _config.Account = textBox_SmtpAccount.Text;
+            _config.Password = textBox_SmtpPassword.Password;
+            _config.Save();
         }
 
         private string MakeErrorMessage(Exception ex) {
@@ -44,6 +65,7 @@ namespace SmtpClient {
             button_Send.IsEnabled = false;
             button_Cancel.IsEnabled = true;
             textBox_Status.Text = "Sending...";
+            SaveConfig();
             try {
                 var message = new MailMessage(
                     textBox_From.Text,
@@ -51,17 +73,14 @@ namespace SmtpClient {
                     textBox_Subject.Text,
                     textBox_Body.Text
                 );
-                var port = DefaultPort;
                 _client = new System.Net.Mail.SmtpClient(
-                    textBox_SmtpServer.Text,
-                    int.TryParse(textBox_SmtpPort.Text, out port) ?
-                        port :
-                        DefaultPort
+                    _config.Server,
+                    _config.Port
                 ) {
                     DeliveryMethod = SmtpDeliveryMethod.Network,
-                    EnableSsl = checkBox_SmtpSsl.IsChecked == true,
-                    Credentials = (!String.IsNullOrEmpty(textBox_SmtpAccount.Text) ?
-                        new NetworkCredential(textBox_SmtpAccount.Text, textBox_SmtpPassword.Password) :
+                    EnableSsl = _config.SSL,
+                    Credentials = (!String.IsNullOrEmpty(_config.Account) ?
+                        new NetworkCredential(_config.Account, _config.Password) :
                         null),
                 };
                 _client.SendCompleted += (s, args) => {
@@ -96,6 +115,9 @@ namespace SmtpClient {
 
         private void button_Config_Click(object sender, RoutedEventArgs e) {
             _configVisibility = !_configVisibility;
+            if (!_configVisibility) {
+                SaveConfig();
+            }
             panel_Config.Visibility = _configVisibility ?
                 Visibility.Visible :
                 Visibility.Collapsed;
