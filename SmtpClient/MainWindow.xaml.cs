@@ -71,6 +71,12 @@ namespace SmtpClient {
                     textBox_Subject.Text,
                     textBox_Body.Text
                 );
+                if (!String.IsNullOrEmpty(textBox_Cc.Text)) {
+                    message.CC.Add(textBox_Cc.Text);
+                }
+                if (!String.IsNullOrEmpty(textBox_Bcc.Text)) {
+                    message.Bcc.Add(textBox_Bcc.Text);
+                }
                 _client = new System.Net.Mail.SmtpClient(
                     _config.Server,
                     _config.Port
