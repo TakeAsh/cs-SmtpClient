@@ -13,9 +13,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TakeAsh;  // string.TryParse<T>()
+using TakeAsh;  // string.TryParse<T>(), Crypt
 
 namespace SmtpClient {
+
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
@@ -29,6 +30,7 @@ namespace SmtpClient {
 
         public MainWindow() {
             InitializeComponent();
+            Crypt.Entropy = Encoding.Unicode.GetBytes("Salt; Must be secret!");
             LoadConfig();
         }
 
@@ -37,7 +39,7 @@ namespace SmtpClient {
             textBox_SmtpPort.Text = _config.Port.ToString();
             checkBox_SmtpSsl.IsChecked = _config.SSL;
             textBox_SmtpAccount.Text = _config.Account;
-            textBox_SmtpPassword.Password = _config.Password;
+            textBox_SmtpPassword.Password = Crypt.DecryptToString(_config.Password);
         }
 
         private void SaveConfig() {
@@ -45,7 +47,7 @@ namespace SmtpClient {
             _config.Port = textBox_SmtpPort.Text.TryParse(DefaultPort);
             _config.SSL = checkBox_SmtpSsl.IsChecked == true;
             _config.Account = textBox_SmtpAccount.Text;
-            _config.Password = textBox_SmtpPassword.Password;
+            _config.Password = Crypt.Encrypt(textBox_SmtpPassword.Password);
             _config.Save();
         }
 
@@ -84,7 +86,7 @@ namespace SmtpClient {
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     EnableSsl = _config.SSL,
                     Credentials = (!String.IsNullOrEmpty(_config.Account) ?
-                        new NetworkCredential(_config.Account, _config.Password) :
+                        new NetworkCredential(_config.Account, Crypt.DecryptToString(_config.Password)) :
                         null),
                 };
                 _client.SendCompleted += (s, args) => {
