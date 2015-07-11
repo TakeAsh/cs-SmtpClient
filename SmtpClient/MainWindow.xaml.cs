@@ -47,7 +47,7 @@ namespace SmtpClient {
             _config.Port = textBox_SmtpPort.Text.TryParse(DefaultPort);
             _config.SSL = checkBox_SmtpSsl.IsChecked == true;
             _config.Account = textBox_SmtpAccount.Text;
-            _config.Password = Crypt.Encrypt(textBox_SmtpPassword.Password);
+            _config.Password = Crypt.Encrypt(textBox_SmtpPassword.SecurePassword);
             _config.Save();
         }
 
