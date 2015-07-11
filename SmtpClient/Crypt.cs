@@ -53,10 +53,11 @@ namespace TakeAsh {
         }
 
         public static SecureString ToSecureString(string input) {
-            if (input == null) {
-                return null;
-            }
             var secure = new SecureString();
+            if (String.IsNullOrEmpty(input)) {
+                secure.MakeReadOnly();
+                return secure;
+            }
             input.ToList()
                 .ForEach(c => secure.AppendChar(c));
             secure.MakeReadOnly();
