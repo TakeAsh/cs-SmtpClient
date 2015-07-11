@@ -86,7 +86,7 @@ namespace SmtpClient {
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     EnableSsl = _config.SSL,
                     Credentials = (!String.IsNullOrEmpty(_config.Account) ?
-                        new NetworkCredential(_config.Account, Crypt.DecryptToString(_config.Password)) :
+                        new NetworkCredential(_config.Account, Crypt.DecryptToSecureString(_config.Password)) :
                         null),
                 };
                 _client.SendCompleted += (s, args) => {
