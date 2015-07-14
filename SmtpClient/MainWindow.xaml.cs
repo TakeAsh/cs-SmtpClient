@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Mime;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TakeAsh;  // string.TryParse<T>(), Crypt
+using Microsoft.Win32;
+using TakeAsh;  // string.TryParse<T>(), Crypt, FileFilterItem
 
 namespace SmtpClient {
 
@@ -24,9 +26,21 @@ namespace SmtpClient {
 
         const int DefaultPort = 25;
 
+        private static Properties.Settings _config = Properties.Settings.Default;
+        private static readonly string _fileFilter = new[] {
+            new FileFilterItem("All files", ".*"),
+            new FileFilterItem("ZIP files", ".zip"),
+            new FileFilterItem("JPEG files", ".jpg; .jpeg; .jpe"),
+            new FileFilterItem("PNG files", ".png"),
+            new FileFilterItem("PDF files", ".pdf"),
+            new FileFilterItem("Excel files", ".xlsx; .xls"),
+            new FileFilterItem("Word files", ".docx; .doc"),
+            new FileFilterItem("Text files", ".txt; .md"),
+        }.ToFileFilter();
+
         private System.Net.Mail.SmtpClient _client;
         private bool _configVisibility = true;
-        private Properties.Settings _config = Properties.Settings.Default;
+        private List<System.IO.FileInfo> _attachments = new List<System.IO.FileInfo>();
 
         public MainWindow() {
             InitializeComponent();
@@ -61,6 +75,34 @@ namespace SmtpClient {
             return ret;
         }
 
+        private void AddAttachments() {
+            var dlg = new OpenFileDialog() {
+                Title = "Select attachments",
+                FileName = "",
+                DefaultExt = ".*",
+                Filter = _fileFilter,
+                AddExtension = false,
+                CheckFileExists = true,
+                CheckPathExists = true,
+                Multiselect = true,
+            };
+            if (dlg.ShowDialog() != true) {
+                return;
+            }
+            _attachments = _attachments.Union(dlg.FileNames
+                .Select(file => new System.IO.FileInfo(file)))
+                .ToList();
+            listBox_Attachments.ItemsSource = null;
+            listBox_Attachments.ItemsSource = _attachments;
+        }
+
+        private void RemoveAttachments() {
+            var selected = listBox_Attachments.SelectedItems.OfType<System.IO.FileInfo>().ToList();
+            _attachments.RemoveAll(file => selected.Contains(file));
+            listBox_Attachments.ItemsSource = null;
+            listBox_Attachments.ItemsSource = _attachments;
+        }
+
         private void button_Send_Click(object sender, RoutedEventArgs e) {
             button_Send.IsEnabled = false;
             button_Cancel.IsEnabled = true;
@@ -78,6 +120,10 @@ namespace SmtpClient {
                 }
                 if (!String.IsNullOrEmpty(textBox_Bcc.Text)) {
                     message.Bcc.Add(textBox_Bcc.Text);
+                }
+                if (_attachments.Count > 0) {
+                    _attachments.ForEach(file =>
+                        message.Attachments.Add(new Attachment(file.FullName, GetMimeType(file.Name))));
                 }
                 _client = new System.Net.Mail.SmtpClient(
                     _config.Server,
@@ -113,6 +159,23 @@ namespace SmtpClient {
             }
         }
 
+        /// <summary>
+        /// Get MIME type from registry
+        /// </summary>
+        /// <param name="fileName">file name</param>
+        /// <returns>MIME type string</returns>
+        /// <remarks>
+        /// [c# - Get MIME type from filename extension - Stack Overflow](http://stackoverflow.com/questions/1029740)
+        /// </remarks>
+        private string GetMimeType(string fileName) {
+            var regKey = Registry.ClassesRoot
+                .OpenSubKey(System.IO.Path.GetExtension(fileName).ToLower());
+            string mimeType;
+            return regKey == null || String.IsNullOrEmpty(mimeType = regKey.GetValue("Content Type") as string) ?
+                MediaTypeNames.Application.Octet :
+                mimeType;
+        }
+
         private void button_Cancel_Click(object sender, RoutedEventArgs e) {
             if (_client != null) {
                 _client.SendAsyncCancel();
@@ -131,6 +194,22 @@ namespace SmtpClient {
 
         private void button_CopyMessage_Click(object sender, RoutedEventArgs e) {
             Clipboard.SetText(textBox_Status.Text);
+        }
+
+        private void button_AddAttachments_Click(object sender, RoutedEventArgs e) {
+            AddAttachments();
+        }
+
+        private void listBox_Attachments_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+            AddAttachments();
+        }
+
+        private void button_RemoveAttachments_Click(object sender, RoutedEventArgs e) {
+            RemoveAttachments();
+        }
+
+        private void listBox_Attachments_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            button_RemoveAttachments.IsEnabled = listBox_Attachments.SelectedItems.Count > 0;
         }
     }
 }
