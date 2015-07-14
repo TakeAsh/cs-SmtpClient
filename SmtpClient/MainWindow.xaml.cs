@@ -220,7 +220,8 @@ namespace SmtpClient {
         }
 
         private void listBox_Attachments_DragOver(object sender, DragEventArgs e) {
-            var isSupported = e.Data.GetDataPresent(DataFormats.FileDrop);
+            var isSupported = e.Data.GetDataPresent(DataFormats.FileDrop) ||
+                e.Data.GetDataPresent(DataFormats.Text);
             e.Effects = isSupported ?
                 DragDropEffects.Copy :
                 DragDropEffects.None;
@@ -230,6 +231,14 @@ namespace SmtpClient {
         private void listBox_Attachments_Drop(object sender, DragEventArgs e) {
             var files = e.Data.GetData(DataFormats.FileDrop) as string[];
             if (files != null) {
+                AddAttachments(files);
+                return;
+            }
+            var text = e.Data.GetData(DataFormats.Text) as string;
+            if (text != null &&
+                (files = text.Split(new[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(file => System.IO.File.Exists(file))
+                    .ToArray()).Length > 0) {
                 AddAttachments(files);
                 return;
             }
