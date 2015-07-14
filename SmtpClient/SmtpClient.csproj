@@ -101,6 +101,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Crypt.cs" />
+    <Compile Include="FileFilter.cs" />
     <Compile Include="StringExtensionMethods.cs" />
   </ItemGroup>
   <ItemGroup>
