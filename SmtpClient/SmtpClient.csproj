@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="Crypt.cs" />
     <Compile Include="FileFilter.cs" />
+    <Compile Include="InlineComparer.cs" />
     <Compile Include="StringExtensionMethods.cs" />
   </ItemGroup>
   <ItemGroup>
