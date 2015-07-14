@@ -93,7 +93,10 @@
                 DisplayMemberPath="Name"
                 SelectionMode="Extended"
                 MouseDoubleClick="listBox_Attachments_MouseDoubleClick"
-                SelectionChanged="listBox_Attachments_SelectionChanged" />
+                SelectionChanged="listBox_Attachments_SelectionChanged"
+                AllowDrop="True"
+                DragOver="listBox_Attachments_DragOver"
+                Drop="listBox_Attachments_Drop" />
         </Grid>
         <StatusBar DockPanel.Dock="Bottom">
             <Button x:Name="button_CopyMessage" Content="Copy"

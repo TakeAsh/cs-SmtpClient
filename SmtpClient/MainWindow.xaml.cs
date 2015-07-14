@@ -75,7 +75,7 @@ namespace SmtpClient {
             return ret;
         }
 
-        private void AddAttachments() {
+        private void SelectAttachments() {
             var dlg = new OpenFileDialog() {
                 Title = "Select attachments",
                 FileName = "",
@@ -89,9 +89,16 @@ namespace SmtpClient {
             if (dlg.ShowDialog() != true) {
                 return;
             }
-            _attachments = _attachments.Union(dlg.FileNames
-                .Select(file => new System.IO.FileInfo(file)))
-                .ToList();
+            AddAttachments(dlg.FileNames);
+        }
+
+        private void AddAttachments(IEnumerable<string> files) {
+            _attachments = _attachments.Union(
+                files.Select(file => new System.IO.FileInfo(file)),
+                new InlineComparer<System.IO.FileInfo>(
+                    (fi1, fi2) => fi1.FullName == fi2.FullName,
+                    (fi) => fi.FullName.GetHashCode()
+                )).ToList();
             listBox_Attachments.ItemsSource = null;
             listBox_Attachments.ItemsSource = _attachments;
         }
@@ -197,11 +204,11 @@ namespace SmtpClient {
         }
 
         private void button_AddAttachments_Click(object sender, RoutedEventArgs e) {
-            AddAttachments();
+            SelectAttachments();
         }
 
         private void listBox_Attachments_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-            AddAttachments();
+            SelectAttachments();
         }
 
         private void button_RemoveAttachments_Click(object sender, RoutedEventArgs e) {
@@ -210,6 +217,22 @@ namespace SmtpClient {
 
         private void listBox_Attachments_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             button_RemoveAttachments.IsEnabled = listBox_Attachments.SelectedItems.Count > 0;
+        }
+
+        private void listBox_Attachments_DragOver(object sender, DragEventArgs e) {
+            var isSupported = e.Data.GetDataPresent(DataFormats.FileDrop);
+            e.Effects = isSupported ?
+                DragDropEffects.Copy :
+                DragDropEffects.None;
+            e.Handled = true; // stop event bubbling
+        }
+
+        private void listBox_Attachments_Drop(object sender, DragEventArgs e) {
+            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            if (files != null) {
+                AddAttachments(files);
+                return;
+            }
         }
     }
 }
