@@ -101,6 +101,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DragEventHelper.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
