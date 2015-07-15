@@ -76,13 +76,19 @@
             <TextBox x:Name="textBox_From" Grid.Row="0" Grid.Column="1" />
             <TextBlock Grid.Row="1" Grid.Column="0" Text="To"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
-            <TextBox x:Name="textBox_To" Grid.Row="1" Grid.Column="1" />
+            <TextBox x:Name="textBox_To" Grid.Row="1" Grid.Column="1"
+                PreviewDragOver="textBox_MailAddresses_DragOver"
+                PreviewDrop="textBox_MailAddresses_Drop" />
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Cc"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
-            <TextBox x:Name="textBox_Cc" Grid.Row="2" Grid.Column="1" />
+            <TextBox x:Name="textBox_Cc" Grid.Row="2" Grid.Column="1"
+                PreviewDragOver="textBox_MailAddresses_DragOver"
+                PreviewDrop="textBox_MailAddresses_Drop" />
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Bcc"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
-            <TextBox x:Name="textBox_Bcc" Grid.Row="3" Grid.Column="1" />
+            <TextBox x:Name="textBox_Bcc" Grid.Row="3" Grid.Column="1"
+                PreviewDragOver="textBox_MailAddresses_DragOver"
+                PreviewDrop="textBox_MailAddresses_Drop" />
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Subject"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
             <TextBox x:Name="textBox_Subject" Grid.Row="4" Grid.Column="1" />

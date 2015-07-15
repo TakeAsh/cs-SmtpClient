@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -37,6 +38,15 @@ namespace SmtpClient {
             new FileFilterItem("Word files", ".docx; .doc"),
             new FileFilterItem("Text files", ".txt; .md"),
         }.ToFileFilter();
+
+        private static readonly Regex _regQuoted = new Regex(@"(?<quot>[""'])([^""']+)\k<quot>");
+        private static readonly string[] _mailAddressSeparators = new[] { ",", "\n", "\r", "\t", };
+        private static readonly Regex _regEscape = new Regex(@"(" + String.Join("|", _mailAddressSeparators) + @")");
+        private static readonly Regex _regUnescape = new Regex(@"\\x([0-9a-fA-F]{2})");
+        private static readonly InlineComparer<MailAddress> _mailAddressComparer = new InlineComparer<MailAddress>(
+            (ma1, ma2) => ma1.Address == ma2.Address,
+            (ma) => ma.Address.GetHashCode()
+        );
 
         private System.Net.Mail.SmtpClient _client;
         private bool _configVisibility = true;
@@ -235,6 +245,63 @@ namespace SmtpClient {
                 AddAttachments(files);
                 return;
             }
+        }
+
+        private void textBox_MailAddresses_DragOver(object sender, DragEventArgs e) {
+            var isSupported =
+                e.Data.GetDataPresent(DataFormats.UnicodeText) ||
+                e.Data.GetDataPresent(DataFormats.Text);
+            e.Effects = isSupported ?
+                DragDropEffects.Copy :
+                DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private void textBox_MailAddresses_Drop(object sender, DragEventArgs e) {
+            var textBox = sender as TextBox;
+            if (textBox == null) {
+                return;
+            }
+            var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
+                (e.Data.GetData(DataFormats.Text) as string);
+            var mailAddresses = ToMailAddresses(text);
+            if (mailAddresses != null && mailAddresses.Count > 0) {
+                textBox.Text = String.Join(
+                    ", ",
+                    String.IsNullOrEmpty(textBox.Text) ?
+                        mailAddresses :
+                        ToMailAddresses(textBox.Text).Union(mailAddresses, _mailAddressComparer)
+                );
+                e.Handled = true;
+                return;
+            }
+        }
+
+        private List<MailAddress> ToMailAddresses(string text) {
+            if (String.IsNullOrEmpty(text)) {
+                return null;
+            }
+            return _regQuoted.Replace(
+                text,
+                (m1) => "\"" + _regEscape.Replace(
+                    m1.Groups[1].Value,
+                    (m2) => "\\x" + ((int)m2.Groups[1].Value[0]).ToString("X2")
+                ) + "\""
+            ).SplitTrim(_mailAddressSeparators)
+            .Select(address => {
+                try {
+                    return new MailAddress(_regUnescape.Replace(
+                        address,
+                        (m) => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString()
+                    ));
+                }
+                catch (Exception ex) {
+                    textBox_Status.Text = ex.GetAllMessages();
+                    return null;
+                }
+            }).Where(address => address != null)
+            .Distinct(_mailAddressComparer)
+            .ToList();
         }
     }
 }
