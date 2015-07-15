@@ -65,16 +65,6 @@ namespace SmtpClient {
             _config.Save();
         }
 
-        private string MakeErrorMessage(Exception ex) {
-            var ret = ex.Message;
-            var innerEx = ex.InnerException;
-            while (innerEx != null) {
-                ret += "\n" + innerEx.Message;
-                innerEx = innerEx.InnerException;
-            }
-            return ret;
-        }
-
         private void SelectAttachments() {
             var dlg = new OpenFileDialog() {
                 Title = "Select attachments",
@@ -146,7 +136,7 @@ namespace SmtpClient {
                     var msg = args.UserState as MailMessage;
                     if (args.Error != null) {
                         // After disposing client, whenever "e.Error == null" is true.
-                        textBox_Status.Text = MakeErrorMessage(args.Error);
+                        textBox_Status.Text = args.Error.GetAllMessages();
                     } else if (args.Cancelled) {
                         textBox_Status.Text = "Cancel";
                     } else {
@@ -160,7 +150,7 @@ namespace SmtpClient {
                 _client.SendAsync(message, message);
             }
             catch (Exception ex) {
-                textBox_Status.Text = MakeErrorMessage(ex);
+                textBox_Status.Text = ex.GetAllMessages();
                 button_Send.IsEnabled = true;
                 button_Cancel.IsEnabled = false;
             }
