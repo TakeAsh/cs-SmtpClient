@@ -234,6 +234,7 @@ namespace SmtpClient {
             var files = e.Data.GetData(DataFormats.FileDrop) as string[];
             if (files != null) {
                 AddAttachments(files);
+                e.Handled = true;
                 return;
             }
             var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
@@ -243,6 +244,7 @@ namespace SmtpClient {
                     .Where(file => System.IO.File.Exists(file))
                     .ToArray()).Length > 0) {
                 AddAttachments(files);
+                e.Handled = true;
                 return;
             }
         }
