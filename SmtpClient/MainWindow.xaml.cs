@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Win32;
-using TakeAsh;  // string.TryParse<T>(), Crypt, FileFilterItem
+using TakeAshUtility;
 
 namespace SmtpClient {
 
