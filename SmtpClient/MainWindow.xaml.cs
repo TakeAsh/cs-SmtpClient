@@ -54,6 +54,15 @@ namespace SmtpClient {
 
         public MainWindow() {
             InitializeComponent();
+            var mailAddressesDragOverEventHandler = DragEventHelper.CreateDragOverEventHandler(
+                new[] { DataFormats.UnicodeText, DataFormats.Text, }
+            );
+            textBox_To.PreviewDragOver += mailAddressesDragOverEventHandler;
+            textBox_Cc.PreviewDragOver += mailAddressesDragOverEventHandler;
+            textBox_Bcc.PreviewDragOver += mailAddressesDragOverEventHandler;
+            listBox_Attachments.DragOver += DragEventHelper.CreateDragOverEventHandler(
+                new[] { DataFormats.FileDrop, DataFormats.UnicodeText, DataFormats.Text, }
+            );
             Crypt.Entropy = Encoding.Unicode.GetBytes("Salt; Must be secret!");
             LoadConfig();
         }
@@ -219,17 +228,6 @@ namespace SmtpClient {
             button_RemoveAttachments.IsEnabled = listBox_Attachments.SelectedItems.Count > 0;
         }
 
-        private void listBox_Attachments_DragOver(object sender, DragEventArgs e) {
-            var isSupported =
-                e.Data.GetDataPresent(DataFormats.FileDrop) ||
-                e.Data.GetDataPresent(DataFormats.UnicodeText) ||
-                e.Data.GetDataPresent(DataFormats.Text);
-            e.Effects = isSupported ?
-                DragDropEffects.Copy :
-                DragDropEffects.None;
-            e.Handled = true; // stop event bubbling
-        }
-
         private void listBox_Attachments_Drop(object sender, DragEventArgs e) {
             var files = e.Data.GetData(DataFormats.FileDrop) as string[];
             if (files != null) {
@@ -247,16 +245,6 @@ namespace SmtpClient {
                 e.Handled = true;
                 return;
             }
-        }
-
-        private void textBox_MailAddresses_DragOver(object sender, DragEventArgs e) {
-            var isSupported =
-                e.Data.GetDataPresent(DataFormats.UnicodeText) ||
-                e.Data.GetDataPresent(DataFormats.Text);
-            e.Effects = isSupported ?
-                DragDropEffects.Copy :
-                DragDropEffects.None;
-            e.Handled = true;
         }
 
         private void textBox_MailAddresses_Drop(object sender, DragEventArgs e) {
