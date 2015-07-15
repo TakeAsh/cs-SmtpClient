@@ -220,7 +220,9 @@ namespace SmtpClient {
         }
 
         private void listBox_Attachments_DragOver(object sender, DragEventArgs e) {
-            var isSupported = e.Data.GetDataPresent(DataFormats.FileDrop) ||
+            var isSupported =
+                e.Data.GetDataPresent(DataFormats.FileDrop) ||
+                e.Data.GetDataPresent(DataFormats.UnicodeText) ||
                 e.Data.GetDataPresent(DataFormats.Text);
             e.Effects = isSupported ?
                 DragDropEffects.Copy :
@@ -234,9 +236,10 @@ namespace SmtpClient {
                 AddAttachments(files);
                 return;
             }
-            var text = e.Data.GetData(DataFormats.Text) as string;
+            var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
+                (e.Data.GetData(DataFormats.Text) as string);
             if (text != null &&
-                (files = text.Split(new[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
+                (files = text.SplitTrim(new[] { "\n", "\r" })
                     .Where(file => System.IO.File.Exists(file))
                     .ToArray()).Length > 0) {
                 AddAttachments(files);
