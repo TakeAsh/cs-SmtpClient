@@ -230,10 +230,10 @@ namespace SmtpClient {
         }
 
         private void listBox_Attachments_Drop(object sender, DragEventArgs e) {
+            e.Handled = true;
             var files = e.Data.GetData(DataFormats.FileDrop) as string[];
             if (files != null) {
                 AddAttachments(files);
-                e.Handled = true;
                 return;
             }
             var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
@@ -243,7 +243,6 @@ namespace SmtpClient {
                     .Where(file => System.IO.File.Exists(file))
                     .ToArray()).Length > 0) {
                 AddAttachments(files);
-                e.Handled = true;
                 return;
             }
         }
@@ -268,6 +267,7 @@ namespace SmtpClient {
             if (textBox == null) {
                 return;
             }
+            e.Handled = true;
             var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
                 (e.Data.GetData(DataFormats.Text) as string);
             var mailAddresses = ToMailAddresses(text);
@@ -278,7 +278,6 @@ namespace SmtpClient {
                         mailAddresses :
                         ToMailAddresses(textBox.Text).Union(mailAddresses, _mailAddressComparer)
                 );
-                e.Handled = true;
                 return;
             }
         }
