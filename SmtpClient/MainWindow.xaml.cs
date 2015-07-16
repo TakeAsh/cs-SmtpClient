@@ -57,6 +57,7 @@ namespace SmtpClient {
             var mailAddressesDragOverEventHandler = DragEventHelper.CreateDragOverEventHandler(
                 new[] { DataFormats.UnicodeText, DataFormats.Text, }
             );
+            textBox_From.PreviewDragOver += mailAddressesDragOverEventHandler;
             textBox_To.PreviewDragOver += mailAddressesDragOverEventHandler;
             textBox_Cc.PreviewDragOver += mailAddressesDragOverEventHandler;
             textBox_Bcc.PreviewDragOver += mailAddressesDragOverEventHandler;
@@ -243,6 +244,21 @@ namespace SmtpClient {
                     .ToArray()).Length > 0) {
                 AddAttachments(files);
                 e.Handled = true;
+                return;
+            }
+        }
+
+        private void textBox_MailAddress_Drop(object sender, DragEventArgs e) {
+            var textBox = sender as TextBox;
+            if (textBox == null) {
+                return;
+            }
+            e.Handled = true;
+            var text = (e.Data.GetData(DataFormats.UnicodeText) as string) ??
+                (e.Data.GetData(DataFormats.Text) as string);
+            var mailAddresses = ToMailAddresses(text).FirstOrDefault();
+            if (mailAddresses != null) {
+                textBox.Text = mailAddresses.ToString();
                 return;
             }
         }

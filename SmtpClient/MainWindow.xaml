@@ -73,7 +73,8 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Row="0" Grid.Column="0" Text="From"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
-            <TextBox x:Name="textBox_From" Grid.Row="0" Grid.Column="1" />
+            <TextBox x:Name="textBox_From" Grid.Row="0" Grid.Column="1"
+                PreviewDrop="textBox_MailAddress_Drop" />
             <TextBlock Grid.Row="1" Grid.Column="0" Text="To"
                 TextAlignment="Right" VerticalAlignment="Center" Margin="4" />
             <TextBox x:Name="textBox_To" Grid.Row="1" Grid.Column="1"
