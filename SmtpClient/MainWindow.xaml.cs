@@ -43,7 +43,7 @@ namespace SmtpClient {
         private static readonly string[] _mailAddressSeparators = new[] { ",", "\n", "\r", "\t", };
         private static readonly Regex _regEscape = new Regex(@"(" + String.Join("|", _mailAddressSeparators) + @")");
         private static readonly Regex _regUnescape = new Regex(@"\\x([0-9a-fA-F]{2})");
-        private static readonly InlineComparer<MailAddress> _mailAddressComparer = new InlineComparer<MailAddress>(
+        private static readonly InlineEqualityComparer<MailAddress> _mailAddressComparer = new InlineEqualityComparer<MailAddress>(
             (ma1, ma2) => ma1.Address == ma2.Address,
             (ma) => ma.Address.GetHashCode()
         );
@@ -105,7 +105,7 @@ namespace SmtpClient {
         private void AddAttachments(IEnumerable<string> files) {
             _attachments = _attachments.Union(
                 files.Select(file => new System.IO.FileInfo(file)),
-                new InlineComparer<System.IO.FileInfo>(
+                new InlineEqualityComparer<System.IO.FileInfo>(
                     (fi1, fi2) => fi1.FullName == fi2.FullName,
                     (fi) => fi.FullName.GetHashCode()
                 )).ToList();
